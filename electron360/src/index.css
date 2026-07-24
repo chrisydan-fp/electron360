@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  @apply bg-app-gradient text-slate-200 antialiased;
+  background-attachment: fixed;
+}
+
+/* Scrollbar oscuro con acento neón */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #05060a;
+}
+::-webkit-scrollbar-thumb {
+  background: #16324d;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0d6bff;
+}
+
+/* Utilidades reutilizables del sistema de diseño */
+@layer components {
+  .panel {
+    @apply bg-panel-gradient border border-white/5 rounded-2xl shadow-panel;
+  }
+
+  .panel-hover {
+    @apply transition-all duration-200 hover:border-electric-500/40 hover:shadow-neon-blue-sm;
+  }
+
+  .btn-primary {
+    @apply bg-electric-gradient text-white font-medium rounded-xl px-4 py-2.5
+           shadow-neon-blue-sm hover:shadow-neon-blue hover:brightness-110
+           active:scale-[0.98] transition-all duration-150;
+  }
+
+  .btn-secondary {
+    @apply bg-base-800 border border-white/10 text-slate-200 font-medium rounded-xl px-4 py-2.5
+           hover:border-neon-blue/50 hover:text-neon-blue transition-all duration-150;
+  }
+
+  .btn-ghost {
+    @apply text-slate-400 hover:text-neon-blue rounded-lg px-3 py-2 transition-colors duration-150;
+  }
+
+  .input-field {
+    @apply w-full bg-base-900/80 border border-white/10 rounded-xl px-3.5 py-2.5
+           text-slate-100 placeholder:text-slate-500
+           focus:outline-none focus:border-electric-500 focus:shadow-neon-blue-sm
+           transition-all duration-150;
+  }
+
+  .label-field {
+    @apply text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5 block;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border;
+  }
+
+  .badge-blue {
+    @apply badge bg-electric-500/10 text-neon-blue border-electric-500/30;
+  }
+  .badge-green {
+    @apply badge bg-neon-green/10 text-neon-green border-neon-green/30;
+  }
+  .badge-amber {
+    @apply badge bg-neon-amber/10 text-neon-amber border-neon-amber/30;
+  }
+  .badge-red {
+    @apply badge bg-neon-red/10 text-neon-red border-neon-red/30;
+  }
+  .badge-violet {
+    @apply badge bg-neon-violet/10 text-neon-violet border-neon-violet/30;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Modo Claro — activado con la clase .light en <html> desde Configuración.
+   Sobrescribe los tonos principales manteniendo azul eléctrico como acento.
+------------------------------------------------------------------------ */
+html.light body {
+  background: radial-gradient(circle at 20% 0%, #eaf2ff 0%, #f5f7fb 45%, #ffffff 100%);
+  color: #1e293b;
+}
+html.light .panel { background: linear-gradient(160deg, #ffffff 0%, #f3f6fb 100%); border-color: rgba(13,107,255,0.15); }
+html.light .bg-sidebar-gradient { background: linear-gradient(180deg, #ffffff 0%, #eef2fa 100%); }
+html.light .bg-app-gradient { background: radial-gradient(circle at 20% 0%, #eaf2ff 0%, #f5f7fb 45%, #ffffff 100%); }
+html.light .text-white { color: #0f172a !important; }
+html.light .text-slate-200, html.light .text-slate-300 { color: #334155 !important; }
+html.light .text-slate-400, html.light .text-slate-500 { color: #64748b !important; }
+html.light .text-slate-600 { color: #94a3b8 !important; }
+html.light .bg-base-900\/50, html.light .bg-base-900\/60, html.light .bg-base-800, html.light .bg-base-950\/60 { background-color: #eef2f8 !important; }
+html.light .border-white\/5, html.light .border-white\/10 { border-color: rgba(15,23,42,0.08) !important; }
+html.light .input-field { background: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+html.light ::-webkit-scrollbar-track { background: #e2e8f0; }
+html.light ::-webkit-scrollbar-thumb { background: #b9d4ff; }

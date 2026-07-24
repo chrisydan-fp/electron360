@@ -1,0 +1,7 @@
+Coloca aquí las fuentes Roboto (requeridas por pdfmake/pdfkit para generar los PDFs):
+- Roboto-Regular.ttf
+- Roboto-Medium.ttf
+- Roboto-Italic.ttf
+- Roboto-MediumItalic.ttf
+
+Descárgalas gratis desde Google Fonts: https://fonts.google.com/specimen/Roboto
