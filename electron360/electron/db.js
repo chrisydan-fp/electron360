@@ -147,6 +147,54 @@ try {
 }
 
 try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN falla_encontrada TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN tiene_reparacion INTEGER DEFAULT 1");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN tipo_procedimiento TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN costo_repuesto REAL DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN costo_mano_obra REAL DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN cargo_diagnostico REAL DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN dias_garantia INTEGER DEFAULT 30");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE diagnosticos ADD COLUMN fecha TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
   db.exec("ALTER TABLE garantias ADD COLUMN ciclo INTEGER DEFAULT 1");
 } catch (e) {
   // Ya existe el campo

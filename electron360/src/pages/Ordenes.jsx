@@ -145,6 +145,8 @@ function DetalleOrden({ detalle, onActualizado }) {
   const totalPagado = pagos.reduce((acc, p) => acc + p.monto, 0);
   const saldo = totalOrden - totalPagado;
 
+  const [mostrarFormDiagnostico, setMostrarFormDiagnostico] = useState(false);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -156,7 +158,16 @@ function DetalleOrden({ detalle, onActualizado }) {
       </div>
 
       {orden.estado === "Equipo Recibido" && (
-        <FormDiagnostico idOrden={orden.id_orden} onListo={() => onActualizado(orden.numero_orden)} />
+        mostrarFormDiagnostico ? (
+          <FormDiagnostico idOrden={orden.id_orden} onListo={() => onActualizado(orden.numero_orden)} />
+        ) : (
+          <button
+            onClick={() => setMostrarFormDiagnostico(true)}
+            className="btn-primary w-full text-sm"
+          >
+            Avanzar a Diagnosticado
+          </button>
+        )
       )}
 
       {orden.estado === "En Espera de Aprobacion" && (
@@ -258,14 +269,19 @@ function FormDiagnostico({ idOrden, onListo }) {
       {!enviado ? (
         <button onClick={generar} className="btn-primary w-full text-sm">Confirmar Diagnóstico</button>
       ) : (
-        <div className="bg-base-900/60 border border-white/10 rounded-xl p-3 space-y-2">
+        <div className="bg-base-900/60 border border-white/10 rounded-xl p-3 space-y-3">
           <div className="flex items-start gap-2">
             <MessageCircle size={15} className="text-neon-green shrink-0 mt-0.5" />
             <p className="text-xs text-slate-300">{mensaje}</p>
           </div>
-          <button onClick={() => copiarMensaje(mensaje, setCopiado)} className="btn-ghost text-xs">
-            {copiado ? "Mensaje copiado ✓" : "Copiar mensaje para WhatsApp/SMS"}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button onClick={() => copiarMensaje(mensaje, setCopiado)} className="btn-ghost text-xs w-full text-center">
+              {copiado ? "Mensaje copiado ✓" : "Copiar mensaje para WhatsApp/SMS"}
+            </button>
+            <button onClick={onListo} className="btn-primary w-full text-xs py-2">
+              Aceptar
+            </button>
+          </div>
         </div>
       )}
     </div>
