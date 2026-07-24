@@ -27,6 +27,7 @@ export default function NuevaOrden() {
   const setClienteParaOrden = useNavStore((s) => s.setClienteParaOrden);
   const setView = useNavStore((s) => s.setView);
   const setOrdenDestacada = useNavStore((s) => s.setOrdenDestacada);
+  const setClienteIDParaRegistro = useNavStore((s) => s.setClienteIDParaRegistro);
 
   const [cliente, setCliente] = useState(clienteParaOrden);
   const [modalAsignar, setModalAsignar] = useState(!clienteParaOrden);
@@ -104,6 +105,7 @@ export default function NuevaOrden() {
   };
 
   const irARegistrarCliente = () => {
+    setClienteIDParaRegistro(idBusquedaCliente.trim());
     setModalAsignar(false);
     setView("clientes");
   };
@@ -454,9 +456,9 @@ export default function NuevaOrden() {
 
             {clienteNoEncontrado && (
               <div className="space-y-2 text-sm">
-                <p className="text-neon-red">Cliente no encontrado. Por favor regístrelo primero en el área de Clientes.</p>
-                <button onClick={irARegistrarCliente} className="btn-secondary flex items-center gap-2 text-xs">
-                  <UserPlus size={14} /> Ir a Registrar Cliente
+                <p className="text-neon-red">cliente no encontrado por favor registre primero en el area de clientes</p>
+                <button onClick={irARegistrarCliente} className="btn-primary flex items-center gap-2 text-xs w-full justify-center">
+                  OK
                 </button>
               </div>
             )}

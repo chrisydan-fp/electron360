@@ -11,4 +11,8 @@ export const useNavStore = create((set) => ({
   // Número de orden a resaltar al entrar al módulo Órdenes (tras generar orden o reingreso)
   ordenDestacada: null,
   setOrdenDestacada: (numeroOrden) => set({ ordenDestacada: numeroOrden }),
+
+  // ID de cliente buscado pero no encontrado para pre-llenar y habilitar registro express
+  clienteIDParaRegistro: null,
+  setClienteIDParaRegistro: (id) => set({ clienteIDParaRegistro: id }),
 }));
