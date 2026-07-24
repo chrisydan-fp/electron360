@@ -146,6 +146,18 @@ try {
   // Ya existe el campo
 }
 
+try {
+  db.exec("ALTER TABLE clientes ADD COLUMN red_social_tipo TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE clientes ADD COLUMN red_social_usuario TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
 // Migrar tabla periféricos_estado si es que la BD ya existía y tenía la tabla con nombre no-ASCII
 try {
   const tableCheck = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='periféricos_estado'").get();
