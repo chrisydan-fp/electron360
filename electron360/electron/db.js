@@ -158,6 +158,90 @@ try {
   // Ya existe el campo
 }
 
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN serial TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN imei TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN ram TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN almacenamiento TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN encendido INTEGER DEFAULT 1");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN accesorio_funda INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN accesorio_simcard INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN accesorio_cable_usb INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN accesorio_cargador INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN accesorio_memoria_externa INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN patron_desbloqueo TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN pin_desbloqueo TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN detalle_extra TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE equipos ADD COLUMN imagenes TEXT");
+} catch (e) {
+  // Ya existe el campo
+}
+
 // Migrar tabla periféricos_estado si es que la BD ya existía y tenía la tabla con nombre no-ASCII
 try {
   const tableCheck = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='periféricos_estado'").get();

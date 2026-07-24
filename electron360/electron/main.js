@@ -8,10 +8,10 @@ let db;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
-    minWidth: 1100,
-    minHeight: 700,
+    width: 1200,
+    height: 720,
+    minWidth: 900,
+    minHeight: 600,
     backgroundColor: "#050608",
     autoHideMenuBar: true,
     webPreferences: {
