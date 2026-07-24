@@ -125,6 +125,41 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_clientes_id ON clientes(id_cliente);
 `);
 
+// Migraciones/Actualizaciones para bases de datos existentes
+try {
+  db.exec("ALTER TABLE clientes ADD COLUMN fecha_registro TEXT");
+  db.exec("UPDATE clientes SET fecha_registro = datetime('now') WHERE fecha_registro IS NULL");
+} catch (e) {
+  // Ya existe el campo o error al agregar
+}
+
+try {
+  db.exec("ALTER TABLE clientes ADD COLUMN fecha_actualizacion TEXT");
+  db.exec("UPDATE clientes SET fecha_actualizacion = datetime('now') WHERE fecha_actualizacion IS NULL");
+} catch (e) {
+  // Ya existe el campo o error al agregar
+}
+
+try {
+  db.exec("ALTER TABLE ordenes ADD COLUMN es_reingreso INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+// Migrar tabla periféricos_estado si es que la BD ya existía y tenía la tabla con nombre no-ASCII
+try {
+  const tableCheck = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='periféricos_estado'").get();
+  if (tableCheck) {
+    db.exec(`
+      INSERT OR IGNORE INTO perifericos_estado (id_estado, id_equipo, periferico, estado)
+      SELECT id_estado, id_equipo, periferico, estado FROM periféricos_estado;
+    `);
+    db.exec("DROP TABLE IF EXISTS periféricos_estado;");
+  }
+} catch (e) {
+  // Ignorar errores si no se puede migrar automáticamente
+}
+
 const defaults = {
   tema: "oscuro",
   moneda: "USD",

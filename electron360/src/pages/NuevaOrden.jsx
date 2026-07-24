@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Smartphone, Tablet, Laptop, Monitor, MoreHorizontal, ImagePlus, Zap, Search, UserPlus,
+  Smartphone, Tablet, Laptop, Monitor, MoreHorizontal, ImagePlus, Zap, Search, UserPlus, X,
 } from "lucide-react";
 import PatternMatrix from "../components/ui/PatternMatrix";
 import CatalogSelect from "../components/ui/CatalogSelect";
@@ -399,9 +399,29 @@ export default function NuevaOrden() {
       {/* Modal: asignar cliente (acceso directo desde sidebar) */}
       {modalAsignar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => cliente && setModalAsignar(false)} />
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => {
+            if (cliente) {
+              setModalAsignar(false);
+            } else {
+              setView("dashboard");
+            }
+          }} />
           <div className="relative w-full max-w-md panel p-5 space-y-4 border-electric-500/20">
-            <p className="text-white font-semibold">Asignar Cliente a esta Orden</p>
+            <div className="flex items-center justify-between">
+              <p className="text-white font-semibold">Asignar Cliente a esta Orden</p>
+              <button
+                onClick={() => {
+                  if (cliente) {
+                    setModalAsignar(false);
+                  } else {
+                    setView("dashboard");
+                  }
+                }}
+                className="text-slate-500 hover:text-neon-red transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
             <div className="flex gap-2">
               <input className="input-field" placeholder="Número ID del cliente" value={idBusquedaCliente} onChange={(e) => setIdBusquedaCliente(e.target.value)} onKeyDown={(e) => e.key === "Enter" && buscarClienteParaAsignar()} />
               <button onClick={buscarClienteParaAsignar} className="btn-primary shrink-0 flex items-center gap-2"><Search size={15} /> Buscar</button>
