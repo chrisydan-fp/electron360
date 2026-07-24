@@ -142,7 +142,7 @@ function registerIpcHandlers() {
   });
 
   // ---------- Nueva Orden ----------
-  ipcMain.handle("ordenes:crear", (_e, payload) => {
+  ipcMain.handle("ordenes:crear", async (_e, payload) => {
     const { equipo, perifericos, fallaReportada, imagenes } = payload;
 
     const carpetaImgs = path.join(app.getPath("userData"), "imagenes");
@@ -191,7 +191,7 @@ function registerIpcHandlers() {
     const completa = obtenerOrdenCompleta(resultado.idOrden);
     const config = getConfig();
     const pdf = require("./pdf");
-    const rutaRecibo = pdf.generarReciboTermico({ ...completa, config });
+    const rutaRecibo = await pdf.generarReciboTermico({ ...completa, config });
 
     return { orden: completa.orden, rutaRecibo };
   });
@@ -310,7 +310,7 @@ function registerIpcHandlers() {
   });
 
   // Listo para Entrega -> Entregado (valida saldo salvo que sea reingreso por garantía)
-  ipcMain.handle("ordenes:entregar", (_e, idOrden) => {
+  ipcMain.handle("ordenes:entregar", async (_e, idOrden) => {
     const orden = db.prepare("SELECT * FROM ordenes WHERE id_orden = ?").get(idOrden);
     const { totalOrden, totalPagado, saldo } = saldoPendiente(idOrden);
 
@@ -341,7 +341,7 @@ function registerIpcHandlers() {
     const completa = obtenerOrdenCompleta(idOrden);
     const config = getConfig();
     const pdf = require("./pdf");
-    const rutaFactura = pdf.generarFacturaCarta({ ...completa, config });
+    const rutaFactura = await pdf.generarFacturaCarta({ ...completa, config });
 
     return { ok: true, rutaFactura, garantia: completa.garantia };
   });
