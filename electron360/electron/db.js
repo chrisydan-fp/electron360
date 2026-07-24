@@ -147,6 +147,12 @@ try {
 }
 
 try {
+  db.exec("ALTER TABLE garantias ADD COLUMN ciclo INTEGER DEFAULT 1");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
   db.exec("ALTER TABLE clientes ADD COLUMN red_social_tipo TEXT");
 } catch (e) {
   // Ya existe el campo
