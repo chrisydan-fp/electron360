@@ -203,4 +203,23 @@ const coloresBase = ["Negro", "Blanco", "Gris", "Plata", "Azul", "Rojo", "Dorado
 const insertColor = db.prepare("INSERT OR IGNORE INTO catalogo_colores (color) VALUES (?)");
 for (const c of coloresBase) insertColor.run(c);
 
+// Modelos base precargados de fábrica
+const modelosBase = {
+  Samsung: ["Galaxy S24", "Galaxy S23", "Galaxy A54", "Galaxy Tab S9", "Galaxy Tab A9"],
+  Apple: ["iPhone 15 Pro", "iPhone 15", "iPhone 14", "iPhone 13", "iPad Pro", "iPad Air", "MacBook Pro", "MacBook Air"],
+  Xiaomi: ["Redmi Note 13", "Redmi Note 12", "Xiaomi 14", "Poco F6"],
+  Motorola: ["Moto G84", "Edge 40", "Moto G54"],
+  Huawei: ["P60 Pro", "Mate 60", "MatePad 11"],
+  Lenovo: ["ThinkPad L14", "IdeaPad Slim 3", "Tab M10"],
+  HP: ["Pavilion 15", "ProBook 450", "EliteBook 840"],
+  Dell: ["Inspiron 15", "Latitude 5440", "XPS 13"],
+  Asus: ["ZenBook 14", "ROG Strix", "VivoBook 15"],
+  Acer: ["Aspire 5", "Nitro 5", "Swift Go"],
+  Ensamblado: ["Intel Core i5", "Intel Core i7", "AMD Ryzen 5", "AMD Ryzen 7"],
+};
+const insertModelo = db.prepare("INSERT OR IGNORE INTO catalogo_modelos (marca, modelo) VALUES (?, ?)");
+for (const [marca, modelos] of Object.entries(modelosBase)) {
+  for (const modelo of modelos) insertModelo.run(marca, modelo);
+}
+
 module.exports = db;

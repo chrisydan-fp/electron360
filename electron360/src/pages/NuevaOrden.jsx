@@ -135,6 +135,11 @@ export default function NuevaOrden() {
     });
   };
 
+  const eliminarImagen = (index, e) => {
+    e.stopPropagation();
+    setImagenes((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const requiereDatosEncendido = ["Telefono", "Tablet"].includes(tipoEquipo);
 
   const generarOrden = async () => {
@@ -337,18 +342,22 @@ export default function NuevaOrden() {
                 {PERIFERICOS_POR_TIPO[tipoEquipo].map((nombre) => (
                   <div key={nombre} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-base-900/50 border border-white/5">
                     <span className="text-sm text-slate-300">{nombre}</span>
-                    <select
-                      disabled={!encendido}
-                      value={perifericos[nombre]}
-                      onChange={(e) => cambiarEstadoPeriferico(nombre, e.target.value)}
-                      className={`text-xs rounded-lg px-2 py-1 bg-base-800 border ${
-                        perifericos[nombre] === "Funciona" ? "text-neon-green border-neon-green/30" :
-                        perifericos[nombre] === "No Funciona" ? "text-neon-red border-neon-red/30" :
-                        "text-slate-400 border-white/10"
-                      }`}
-                    >
-                      {ESTADOS_PERIFERICO.map((e) => <option key={e} value={e}>{e}</option>)}
-                    </select>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        disabled={!encendido}
+                        checked={perifericos[nombre] === "Funciona"}
+                        onChange={(e) => cambiarEstadoPeriferico(nombre, e.target.checked ? "Funciona" : "No Funciona")}
+                        className="accent-electric-500 rounded h-4 w-4 cursor-pointer"
+                      />
+                      <span className={`text-xs font-semibold ${
+                        perifericos[nombre] === "Funciona" ? "text-neon-green" :
+                        perifericos[nombre] === "No Funciona" ? "text-neon-red" :
+                        "text-slate-400"
+                      }`}>
+                        {perifericos[nombre]}
+                      </span>
+                    </label>
                   </div>
                 ))}
               </div>
@@ -364,7 +373,16 @@ export default function NuevaOrden() {
             {imagenes.length > 0 && (
               <div className="grid grid-cols-4 gap-2 pt-2">
                 {imagenes.map((src, i) => (
-                  <img key={i} src={src} alt="" onClick={() => setImagenAmpliada(src)} className="w-full h-20 object-cover rounded-lg border border-white/10 cursor-pointer hover:border-electric-500/50" />
+                  <div key={i} className="relative group w-full h-20">
+                    <img src={src} alt="" onClick={() => setImagenAmpliada(src)} className="w-full h-full object-cover rounded-lg border border-white/10 cursor-pointer hover:border-electric-500/50" />
+                    <button
+                      onClick={(e) => eliminarImagen(i, e)}
+                      className="absolute top-1 right-1 bg-neon-red/80 hover:bg-neon-red text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center shadow-neon-red"
+                      title="Eliminar imagen"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

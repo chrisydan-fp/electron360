@@ -329,9 +329,19 @@ function FormReparado({ idOrden, perifericos, onListo }) {
         {perifericos.map((p) => (
           <div key={p.periferico} className="flex items-center justify-between px-3 py-2 rounded-lg bg-base-900/50 border border-white/5">
             <span className="text-xs text-slate-300">{p.periferico}</span>
-            <select value={estado[p.periferico]} onChange={(e) => setEstado({ ...estado, [p.periferico]: e.target.value })} className="text-xs bg-base-800 border border-white/10 rounded-lg px-1.5 py-1">
-              {ESTADOS_PERIFERICO.map((e) => <option key={e} value={e}>{e}</option>)}
-            </select>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={estado[p.periferico] === "Funciona"}
+                onChange={(e) => setEstado({ ...estado, [p.periferico]: e.target.checked ? "Funciona" : "No Funciona" })}
+                className="accent-electric-500 rounded h-4 w-4 cursor-pointer"
+              />
+              <span className={`text-xs font-semibold ${
+                estado[p.periferico] === "Funciona" ? "text-neon-green" : "text-neon-red"
+              }`}>
+                {estado[p.periferico]}
+              </span>
+            </label>
           </div>
         ))}
       </div>
