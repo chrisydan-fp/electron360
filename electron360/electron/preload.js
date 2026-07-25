@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld("electron360API", {
   },
   ordenes: {
     crear: (payload) => ipcRenderer.invoke("ordenes:crear", payload),
+    actualizar: (payload) => ipcRenderer.invoke("ordenes:actualizar", payload),
     listar: (filtros) => ipcRenderer.invoke("ordenes:listar", filtros),
     buscar: (numeroOrden) => ipcRenderer.invoke("ordenes:buscar", numeroOrden),
     eliminar: (idOrden) => ipcRenderer.invoke("ordenes:eliminar", idOrden),

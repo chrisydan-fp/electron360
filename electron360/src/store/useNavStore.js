@@ -15,4 +15,12 @@ export const useNavStore = create((set) => ({
   // ID de cliente buscado pero no encontrado para pre-llenar y habilitar registro express
   clienteIDParaRegistro: null,
   setClienteIDParaRegistro: (id) => set({ clienteIDParaRegistro: id }),
+
+  // Base64 PDF Data URL to show in internal viewer modal
+  pdfViewerUrl: null,
+  setPdfViewerUrl: (url) => set({ pdfViewerUrl: url }),
+
+  // Datos para clonar la orden en edición en Nueva Orden
+  ordenParaEditar: null,
+  setOrdenParaEditar: (orden) => set({ ordenParaEditar: orden }),
 }));

@@ -28,8 +28,12 @@ export default function NuevaOrden() {
   const setView = useNavStore((s) => s.setView);
   const setOrdenDestacada = useNavStore((s) => s.setOrdenDestacada);
   const setClienteIDParaRegistro = useNavStore((s) => s.setClienteIDParaRegistro);
+  const setPdfViewerUrl = useNavStore((s) => s.setPdfViewerUrl);
+  const ordenParaEditar = useNavStore((s) => s.ordenParaEditar);
+  const setOrdenParaEditar = useNavStore((s) => s.setOrdenParaEditar);
 
   const [cliente, setCliente] = useState(clienteParaOrden);
+  const [idOrdenEdicion, setIdOrdenEdicion] = useState(null);
   const [modalAsignar, setModalAsignar] = useState(!clienteParaOrden);
   const [idBusquedaCliente, setIdBusquedaCliente] = useState("");
   const [clienteEncontrado, setClienteEncontrado] = useState(null);
@@ -70,6 +74,47 @@ export default function NuevaOrden() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (ordenParaEditar) {
+      const { orden, cliente: c, equipo: eq, perifericos: per } = ordenParaEditar;
+      setCliente(c);
+      setTipoEquipo(eq.tipo_equipo);
+      setMarca(eq.marca || "");
+      setModelo(eq.modelo || "");
+      setColor(eq.color || "");
+      setEncendido(eq.encendido === 1);
+      setImei(eq.imei || "");
+      setSerial(eq.serial || "");
+      setRam(eq.ram || "");
+      setAlmacenamiento(eq.almacenamiento || "");
+      setAccesorios({
+        funda: eq.accesorio_funda === 1,
+        simcard: eq.accesorio_simcard === 1,
+        cable_usb: eq.accesorio_cable_usb === 1,
+        cargador: eq.accesorio_cargador === 1,
+        memoria_externa: eq.accesorio_memoria_externa === 1,
+      });
+      setFalla(orden.falla_reportada || "");
+      setDetalleExtra(eq.detalle_extra || "");
+
+      if (eq.patron_desbloqueo) {
+        setMetodoDesbloqueo("patron");
+        setPatron(eq.patron_desbloqueo.split("-"));
+      } else if (eq.pin_desbloqueo) {
+        setMetodoDesbloqueo("pin");
+        setPin(eq.pin_desbloqueo);
+      }
+
+      if (per) {
+        setPerifericos(Object.fromEntries(per.map((p) => [p.periferico, p.estado])));
+      }
+
+      setImagenes(eq.imagenes || []);
+      setIdOrdenEdicion(orden.id_orden);
+      setOrdenParaEditar(null);
+    }
+  }, [ordenParaEditar]);
+
+  useEffect(() => {
     window.electron360API.catalogos.colores().then(setColoresCat);
   }, []);
 
@@ -83,9 +128,9 @@ export default function NuevaOrden() {
   }, [tipoEquipo]);
 
   useEffect(() => {
-    if (marca) window.electron360API.catalogos.modelos(marca).then(setModelosCat);
+    if (marca) window.electron360API.catalogos.modelos({ tipoEquipo, marca }).then(setModelosCat);
     else setModelosCat([]);
-  }, [marca]);
+  }, [tipoEquipo, marca]);
 
   // ---- Asignación de cliente (acceso directo desde sidebar) ----
   const buscarClienteParaAsignar = async () => {
@@ -151,11 +196,49 @@ export default function NuevaOrden() {
     }
     setGenerando(true);
 
+    if (idOrdenEdicion) {
+      const payload = {
+        idOrden: idOrdenEdicion,
+        equipo: {
+          tipo_equipo: tipoEquipo,
+          marca: tipoEquipo === "Otro" ? "" : marca,
+          modelo: tipoEquipo === "Otro" ? "" : modelo,
+          color: tipoEquipo === "Otro" ? "" : color,
+          imei: requiereDatosEncendido && encendido ? imei : null,
+          serial: serial || null,
+          ram: encendido && ["Telefono", "Tablet", "Laptop", "PC Escritorio"].includes(tipoEquipo) ? ram : null,
+          almacenamiento: requiereDatosEncendido && encendido ? almacenamiento : null,
+          encendido: encendido ? 1 : 0,
+          accesorio_funda: accesorios.funda ? 1 : 0,
+          accesorio_simcard: accesorios.simcard ? 1 : 0,
+          accesorio_cable_usb: accesorios.cable_usb ? 1 : 0,
+          accesorio_cargador: accesorios.cargador ? 1 : 0,
+          accesorio_memoria_externa: accesorios.memoria_externa ? 1 : 0,
+          patron_desbloqueo: metodoDesbloqueo === "patron" && patron.length ? patron.join("-") : null,
+          pin_desbloqueo: metodoDesbloqueo === "pin" && pin ? pin : null,
+          detalle_extra: detalleExtra || null,
+        },
+        perifericos: Object.entries(perifericos).map(([nombre, estado]) => ({ nombre, estado })),
+        fallaReportada: falla,
+      };
+      try {
+        await window.electron360API.ordenes.actualizar(payload);
+        alert("Orden actualizada con éxito.");
+        setView("ordenes");
+      } catch (err) {
+        console.error(err);
+        alert("Ocurrió un error al actualizar la orden.");
+      } finally {
+        setGenerando(false);
+      }
+      return;
+    }
+
     if (marca && TIPOS_EQUIPO_CATALOGABLES.includes(tipoEquipo)) {
       await window.electron360API.catalogos.agregarMarca({ tipoEquipo, marca });
     }
     if (marca && modelo) {
-      await window.electron360API.catalogos.agregarModelo({ marca, modelo });
+      await window.electron360API.catalogos.agregarModelo({ tipoEquipo, marca, modelo });
     }
     if (color) await window.electron360API.catalogos.agregarColor(color);
 
@@ -198,11 +281,11 @@ export default function NuevaOrden() {
     }
   };
 
-  const cerrarToastYMostrarRecibo = async () => {
+  const cerrarToastYMostrarRecibo = () => {
     setToastExito(null);
-    // Evento 3: recibo generado, se ofrece abrir para imprimir/guardar
-    if (resultado?.rutaRecibo) {
-      await window.electron360API.sistema.abrirArchivo(resultado.rutaRecibo);
+    // Evento 3: recibo generado, se muestra en el visor interno
+    if (resultado?.rutaRecibo?.dataUrl) {
+      setPdfViewerUrl(resultado.rutaRecibo.dataUrl);
     }
     setOrdenDestacada(resultado.orden.numero_orden);
     setView("ordenes");
@@ -411,7 +494,7 @@ export default function NuevaOrden() {
           )}
 
           <button onClick={generarOrden} disabled={generando} className="btn-primary w-full flex items-center justify-center gap-2">
-            <Zap size={16} /> {generando ? "Generando..." : "Generar Orden"}
+            <Zap size={16} /> {generando ? "Guardando..." : (idOrdenEdicion ? "Actualizar Orden" : "Generar Orden")}
           </button>
         </div>
       </div>

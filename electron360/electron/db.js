@@ -30,9 +30,10 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS catalogo_modelos (
     id_modelo INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_equipo TEXT,
     marca     TEXT NOT NULL,
     modelo    TEXT NOT NULL,
-    UNIQUE(marca, modelo)
+    UNIQUE(tipo_equipo, marca, modelo)
   );
 
   CREATE TABLE IF NOT EXISTS catalogo_colores (
@@ -142,6 +143,12 @@ try {
 
 try {
   db.exec("ALTER TABLE ordenes ADD COLUMN es_reingreso INTEGER DEFAULT 0");
+} catch (e) {
+  // Ya existe el campo
+}
+
+try {
+  db.exec("ALTER TABLE catalogo_modelos ADD COLUMN tipo_equipo TEXT");
 } catch (e) {
   // Ya existe el campo
 }
@@ -343,21 +350,41 @@ for (const c of coloresBase) insertColor.run(c);
 
 // Modelos base precargados de fábrica
 const modelosBase = {
-  Samsung: ["Galaxy S24", "Galaxy S23", "Galaxy A54", "Galaxy Tab S9", "Galaxy Tab A9"],
-  Apple: ["iPhone 15 Pro", "iPhone 15", "iPhone 14", "iPhone 13", "iPad Pro", "iPad Air", "MacBook Pro", "MacBook Air"],
-  Xiaomi: ["Redmi Note 13", "Redmi Note 12", "Xiaomi 14", "Poco F6"],
-  Motorola: ["Moto G84", "Edge 40", "Moto G54"],
-  Huawei: ["P60 Pro", "Mate 60", "MatePad 11"],
-  Lenovo: ["ThinkPad L14", "IdeaPad Slim 3", "Tab M10"],
-  HP: ["Pavilion 15", "ProBook 450", "EliteBook 840"],
-  Dell: ["Inspiron 15", "Latitude 5440", "XPS 13"],
-  Asus: ["ZenBook 14", "ROG Strix", "VivoBook 15"],
-  Acer: ["Aspire 5", "Nitro 5", "Swift Go"],
-  Ensamblado: ["Intel Core i5", "Intel Core i7", "AMD Ryzen 5", "AMD Ryzen 7"],
+  Telefono: {
+    Samsung: ["Galaxy S24", "Galaxy S23", "Galaxy A54"],
+    Apple: ["iPhone 15 Pro", "iPhone 15", "iPhone 14", "iPhone 13"],
+    Xiaomi: ["Redmi Note 13", "Redmi Note 12", "Xiaomi 14", "Poco F6"],
+    Motorola: ["Moto G84", "Edge 40", "Moto G54"],
+    Huawei: ["P60 Pro", "Mate 60"],
+  },
+  Tablet: {
+    Samsung: ["Galaxy Tab S9", "Galaxy Tab A9"],
+    Apple: ["iPad Pro", "iPad Air"],
+    Lenovo: ["Tab M10"],
+    Huawei: ["MatePad 11"],
+  },
+  Laptop: {
+    HP: ["Pavilion 15", "ProBook 450"],
+    Dell: ["Inspiron 15", "Latitude 5440"],
+    Lenovo: ["ThinkPad L14", "IdeaPad Slim 3"],
+    Asus: ["ZenBook 14", "ROG Strix"],
+    Apple: ["MacBook Pro", "MacBook Air"],
+    Acer: ["Aspire 5", "Nitro 5"],
+  },
+  "PC Escritorio": {
+    HP: ["EliteDesk 800"],
+    Dell: ["OptiPlex 7090"],
+    Lenovo: ["ThinkCentre M70q"],
+    Ensamblado: ["Intel Core i5", "Intel Core i7", "AMD Ryzen 5", "AMD Ryzen 7"],
+  }
 };
-const insertModelo = db.prepare("INSERT OR IGNORE INTO catalogo_modelos (marca, modelo) VALUES (?, ?)");
-for (const [marca, modelos] of Object.entries(modelosBase)) {
-  for (const modelo of modelos) insertModelo.run(marca, modelo);
+const insertModelo = db.prepare("INSERT OR IGNORE INTO catalogo_modelos (tipo_equipo, marca, modelo) VALUES (?, ?, ?)");
+for (const [tipo, marcas] of Object.entries(modelosBase)) {
+  for (const [marca, modelos] of Object.entries(marcas)) {
+    for (const modelo of modelos) {
+      insertModelo.run(tipo, marca, modelo);
+    }
+  }
 }
 
 module.exports = db;

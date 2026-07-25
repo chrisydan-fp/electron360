@@ -20,9 +20,19 @@ function guardarPdf(docDefinition, nombreArchivo) {
     const filePath = path.join(outDir, nombreArchivo);
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
     const stream = fs.createWriteStream(filePath);
+
+    const chunks = [];
+    pdfDoc.on("data", (chunk) => chunks.push(chunk));
+
     pdfDoc.pipe(stream);
     pdfDoc.end();
-    stream.on("finish", () => resolve(filePath));
+
+    stream.on("finish", () => {
+      const pdfBuffer = Buffer.concat(chunks);
+      const base64Data = pdfBuffer.toString("base64");
+      const dataUrl = `data:application/pdf;base64,${base64Data}`;
+      resolve({ filePath, dataUrl });
+    });
     stream.on("error", reject);
   });
 }
@@ -45,6 +55,14 @@ function generarReciboTermico({ orden, cliente, equipo, perifericos, config }) {
     { text: p.estado, fontSize: 8, alignment: "right" },
   ]);
 
+  const listaAccesorios = [];
+  if (equipo.accesorio_funda) listaAccesorios.push("Funda");
+  if (equipo.accesorio_simcard) listaAccesorios.push("SIM Card");
+  if (equipo.accesorio_cable_usb) listaAccesorios.push("Cable USB");
+  if (equipo.accesorio_cargador) listaAccesorios.push("Cargador");
+  if (equipo.accesorio_memoria_externa) listaAccesorios.push("Memoria Externa");
+  const accesoriosTexto = listaAccesorios.length > 0 ? listaAccesorios.join(", ") : "Ninguno";
+
   const docDefinition = {
     pageSize: { width: anchoPt, height: "auto" },
     pageMargins: [10, 10, 10, 10],
@@ -66,6 +84,11 @@ function generarReciboTermico({ orden, cliente, equipo, perifericos, config }) {
       { text: "Equipo", bold: true, fontSize: 9, margin: [0, 8, 0, 2] },
       { text: nombreEquipo, fontSize: 8 },
       { text: `Color: ${equipo.color || "—"}`, fontSize: 8 },
+      { text: `IMEI: ${equipo.imei || "—"}`, fontSize: 8 },
+      { text: `Serial: ${equipo.serial || "—"}`, fontSize: 8 },
+      { text: `RAM: ${equipo.ram || "—"}`, fontSize: 8 },
+      { text: `Memoria: ${equipo.almacenamiento || "—"}`, fontSize: 8 },
+      { text: `Accesorios: ${accesoriosTexto}`, fontSize: 8 },
 
       { text: "Falla Reportada", bold: true, fontSize: 9, margin: [0, 8, 0, 2] },
       { text: orden.falla_reportada || "—", fontSize: 8 },

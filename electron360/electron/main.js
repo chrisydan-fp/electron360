@@ -122,9 +122,21 @@ function registerIpcHandlers() {
   ipcMain.handle("catalogos:marcas", (_e, tipoEquipo) =>
     db.prepare("SELECT marca FROM catalogo_marcas WHERE tipo_equipo = ? ORDER BY marca").all(tipoEquipo).map((r) => r.marca)
   );
-  ipcMain.handle("catalogos:modelos", (_e, marca) =>
-    db.prepare("SELECT modelo FROM catalogo_modelos WHERE marca = ? ORDER BY modelo").all(marca).map((r) => r.modelo)
-  );
+  ipcMain.handle("catalogos:modelos", (_e, payload) => {
+    let tipoEquipo = "";
+    let marca = "";
+    if (typeof payload === "string") {
+      marca = payload;
+    } else if (payload) {
+      tipoEquipo = payload.tipoEquipo;
+      marca = payload.marca;
+    }
+    if (tipoEquipo) {
+      return db.prepare("SELECT modelo FROM catalogo_modelos WHERE tipo_equipo = ? AND marca = ? ORDER BY modelo").all(tipoEquipo, marca).map((r) => r.modelo);
+    } else {
+      return db.prepare("SELECT modelo FROM catalogo_modelos WHERE marca = ? ORDER BY modelo").all(marca).map((r) => r.modelo);
+    }
+  });
   ipcMain.handle("catalogos:colores", () =>
     db.prepare("SELECT color FROM catalogo_colores ORDER BY color").all().map((r) => r.color)
   );
@@ -132,8 +144,8 @@ function registerIpcHandlers() {
     if (marca) db.prepare("INSERT OR IGNORE INTO catalogo_marcas (tipo_equipo, marca) VALUES (?, ?)").run(tipoEquipo, marca);
     return { ok: true };
   });
-  ipcMain.handle("catalogos:agregarModelo", (_e, { marca, modelo }) => {
-    if (modelo) db.prepare("INSERT OR IGNORE INTO catalogo_modelos (marca, modelo) VALUES (?, ?)").run(marca, modelo);
+  ipcMain.handle("catalogos:agregarModelo", (_e, { tipoEquipo, marca, modelo }) => {
+    if (modelo) db.prepare("INSERT OR IGNORE INTO catalogo_modelos (tipo_equipo, marca, modelo) VALUES (?, ?, ?)").run(tipoEquipo || null, marca, modelo);
     return { ok: true };
   });
   ipcMain.handle("catalogos:agregarColor", (_e, color) => {
@@ -194,6 +206,47 @@ function registerIpcHandlers() {
     const rutaRecibo = await pdf.generarReciboTermico({ ...completa, config });
 
     return { orden: completa.orden, rutaRecibo };
+  });
+
+  ipcMain.handle("ordenes:actualizar", async (_e, payload) => {
+    const { idOrden, equipo, perifericos, fallaReportada } = payload;
+    const transaccion = db.transaction(() => {
+      const orden = db.prepare("SELECT id_equipo FROM ordenes WHERE id_orden = ?").get(idOrden);
+      if (!orden) return { ok: false };
+      const idEquipo = orden.id_equipo;
+
+      db.prepare(`
+        UPDATE equipos SET
+          tipo_equipo = @tipo_equipo,
+          marca = @marca,
+          modelo = @modelo,
+          color = @color,
+          imei = @imei,
+          serial = @serial,
+          ram = @ram,
+          almacenamiento = @almacenamiento,
+          encendido = @encendido,
+          accesorio_funda = @accesorio_funda,
+          accesorio_simcard = @accesorio_simcard,
+          accesorio_cable_usb = @accesorio_cable_usb,
+          accesorio_cargador = @accesorio_cargador,
+          accesorio_memoria_externa = @accesorio_memoria_externa,
+          patron_desbloqueo = @patron_desbloqueo,
+          pin_desbloqueo = @pin_desbloqueo,
+          detalle_extra = @detalle_extra
+        WHERE id_equipo = ?
+      `).run({ ...equipo }, idEquipo);
+
+      db.prepare("DELETE FROM perifericos_estado WHERE id_equipo = ?").run(idEquipo);
+      const insertPeriferico = db.prepare(
+        "INSERT INTO perifericos_estado (id_equipo, periferico, estado) VALUES (?, ?, ?)"
+      );
+      for (const p of perifericos || []) insertPeriferico.run(idEquipo, p.nombre, p.estado);
+
+      db.prepare("UPDATE ordenes SET falla_reportada = ? WHERE id_orden = ?").run(fallaReportada, idOrden);
+    });
+    transaccion();
+    return { ok: true };
   });
 
   // ---------- Órdenes: listado / búsqueda / eliminación ----------

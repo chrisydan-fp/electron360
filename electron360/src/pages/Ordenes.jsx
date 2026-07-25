@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, Search, Trash2, MessageCircle, DollarSign, CheckCircle2, PackageCheck, Filter } from "lucide-react";
+import { ClipboardList, Search, Trash2, MessageCircle, DollarSign, CheckCircle2, PackageCheck, Filter, Pencil } from "lucide-react";
 import StatusBadge from "../components/ui/StatusBadge";
 import Modal from "../components/ui/Modal";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
@@ -124,7 +124,7 @@ export default function Ordenes() {
       </div>
 
       <Modal open={!!detalle} onClose={cerrarDetalle} title={detalle ? `Orden ${detalle.orden.numero_orden}` : ""} width="max-w-xl">
-        {detalle && <DetalleOrden detalle={detalle} onActualizado={abrirDetalle} />}
+        {detalle && <DetalleOrden detalle={detalle} onActualizado={abrirDetalle} onClose={cerrarDetalle} />}
       </Modal>
 
       <ConfirmDialog
@@ -139,17 +139,145 @@ export default function Ordenes() {
   );
 }
 
-function DetalleOrden({ detalle, onActualizado }) {
+function ClonNuevaOrdenDetalle({ detalle }) {
+  const { orden, cliente, equipo, perifericos } = detalle;
+
+  const listaAccesorios = [];
+  if (equipo.accesorio_funda) listaAccesorios.push("Funda");
+  if (equipo.accesorio_simcard) listaAccesorios.push("SIM Card");
+  if (equipo.accesorio_cable_usb) listaAccesorios.push("Cable USB");
+  if (equipo.accesorio_cargador) listaAccesorios.push("Cargador");
+  if (equipo.accesorio_memoria_externa) listaAccesorios.push("Memoria Externa");
+  const accesoriosTexto = listaAccesorios.length > 0 ? listaAccesorios.join(", ") : "Ninguno";
+
+  return (
+    <div className="space-y-4 border border-white/5 bg-base-900/40 p-4 rounded-xl text-slate-300 max-h-[50vh] overflow-y-auto">
+      <p className="text-white font-semibold border-b border-white/5 pb-1">Datos Completos del Equipo Registrado</p>
+
+      <div className="grid grid-cols-2 gap-3 text-xs">
+        <div>
+          <p className="text-slate-500 font-medium">Tipo de Equipo</p>
+          <p className="text-slate-200">{equipo.tipo_equipo}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 font-medium">Marca / Modelo</p>
+          <p className="text-slate-200">{equipo.marca || "—"} {equipo.modelo || "—"}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 font-medium">Color</p>
+          <p className="text-slate-200">{equipo.color || "—"}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 font-medium">Estado Encendido</p>
+          <p className={equipo.encendido ? "text-neon-green font-semibold" : "text-neon-red font-semibold"}>
+            {equipo.encendido ? "Encendido" : "Apagado"}
+          </p>
+        </div>
+
+        {equipo.imei && (
+          <div>
+            <p className="text-slate-500 font-medium">IMEI / Serial</p>
+            <p className="text-slate-200">{equipo.imei}</p>
+          </div>
+        )}
+        {equipo.serial && (
+          <div>
+            <p className="text-slate-500 font-medium">Serial</p>
+            <p className="text-slate-200">{equipo.serial}</p>
+          </div>
+        )}
+        {equipo.ram && (
+          <div>
+            <p className="text-slate-500 font-medium">RAM</p>
+            <p className="text-slate-200">{equipo.ram}</p>
+          </div>
+        )}
+        {equipo.almacenamiento && (
+          <div>
+            <p className="text-slate-500 font-medium">Almacenamiento / Disco</p>
+            <p className="text-slate-200">{equipo.almacenamiento}</p>
+          </div>
+        )}
+        <div className="col-span-2">
+          <p className="text-slate-500 font-medium">Accesorios Entregados</p>
+          <p className="text-slate-200">{accesoriosTexto}</p>
+        </div>
+
+        {equipo.pin_desbloqueo && (
+          <div>
+            <p className="text-slate-500 font-medium">PIN de Desbloqueo</p>
+            <p className="text-neon-blue font-semibold">{equipo.pin_desbloqueo}</p>
+          </div>
+        )}
+        {equipo.patron_desbloqueo && (
+          <div>
+            <p className="text-slate-500 font-medium">Patrón de Desbloqueo (Secuencia)</p>
+            <p className="text-neon-blue font-semibold">{equipo.patron_desbloqueo}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-white/5 pt-2 text-xs">
+        <p className="text-slate-500 font-medium">Falla Reportada</p>
+        <p className="text-slate-200 italic">"{orden.falla_reportada || "Sin falla reportada"}"</p>
+      </div>
+
+      {equipo.detalle_extra && (
+        <div className="border-t border-white/5 pt-2 text-xs">
+          <p className="text-slate-500 font-medium">Detalle Extra / Observaciones</p>
+          <p className="text-slate-200">{equipo.detalle_extra}</p>
+        </div>
+      )}
+
+      {/* Checklist de periféricos */}
+      {perifericos && perifericos.length > 0 && (
+        <div className="border-t border-white/5 pt-2">
+          <p className="text-white font-medium text-xs mb-1.5">Estado de Periféricos</p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {perifericos.map((p) => (
+              <div key={p.periferico} className="flex items-center justify-between bg-base-950/40 px-2.5 py-1.5 rounded border border-white/5 text-[11px]">
+                <span className="text-slate-400">{p.periferico}</span>
+                <span className={`font-semibold ${
+                  p.estado === "Funciona" ? "text-neon-green" :
+                  p.estado === "No Funciona" ? "text-neon-red" : "text-slate-500"
+                }`}>
+                  {p.estado}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Imágenes en miniatura */}
+      {equipo.imagenes && equipo.imagenes.length > 0 && (
+        <div className="border-t border-white/5 pt-2">
+          <p className="text-white font-medium text-xs mb-1">Imágenes Adjuntas</p>
+          <div className="grid grid-cols-4 gap-1.5">
+            {equipo.imagenes.map((src, i) => (
+              <img key={i} src={src} alt="" className="w-full h-12 object-cover rounded border border-white/5" />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetalleOrden({ detalle, onActualizado, onClose }) {
   const { orden, cliente, equipo, perifericos, diagnostico, pagos } = detalle;
   const totalOrden = (diagnostico?.costo_repuesto || 0) + (diagnostico?.costo_mano_obra || 0) + (diagnostico?.cargo_diagnostico || 0);
   const totalPagado = pagos.reduce((acc, p) => acc + p.monto, 0);
   const saldo = totalOrden - totalPagado;
 
+  const setView = useNavStore((s) => s.setView);
+  const setOrdenParaEditar = useNavStore((s) => s.setOrdenParaEditar);
+
   const [mostrarFormDiagnostico, setMostrarFormDiagnostico] = useState(false);
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-white/5 pb-2">
         <div>
           <p className="text-white font-medium">{cliente.nombres}</p>
           <p className="text-slate-500 text-xs">{equipo.tipo_equipo} {equipo.marca} {equipo.modelo} · {cliente.telefono}</p>
@@ -157,44 +285,63 @@ function DetalleOrden({ detalle, onActualizado }) {
         <StatusBadge estado={orden.estado} />
       </div>
 
-      {orden.estado === "Equipo Recibido" && (
-        mostrarFormDiagnostico ? (
-          <FormDiagnostico idOrden={orden.id_orden} onListo={() => onActualizado(orden.numero_orden)} />
-        ) : (
-          <button
-            onClick={() => setMostrarFormDiagnostico(true)}
-            className="btn-primary w-full text-sm"
-          >
-            Avanzar a Diagnosticado
-          </button>
-        )
-      )}
+      {/* Clon de Nueva Orden con todos los detalles registrados */}
+      <ClonNuevaOrdenDetalle detalle={detalle} />
 
-      {orden.estado === "En Espera de Aprobacion" && (
-        <FormPago
-          idOrden={orden.id_orden}
-          totalOrden={totalOrden}
-          saldo={saldo}
-          modo="aprobar"
-          onListo={() => onActualizado(orden.numero_orden)}
-        />
-      )}
+      {/* Botones de Función: Editar Orden & Avanzar al Siguiente Estado */}
+      <div className="flex gap-3 pt-2 border-t border-white/5">
+        <button
+          onClick={() => {
+            setOrdenParaEditar(detalle);
+            setView("nueva-orden");
+            onClose();
+          }}
+          className="btn-secondary flex-1 flex items-center justify-center gap-2 text-sm py-2.5"
+        >
+          <Pencil size={15} /> Editar Orden
+        </button>
 
-      {orden.estado === "Aprobado" && (
-        <BotonSimple etiqueta="Avanzar a En Reparación" idOrden={orden.id_orden} siguienteEstado="En Reparacion" onListo={() => onActualizado(orden.numero_orden)} />
-      )}
+        <div className="flex-1">
+          {orden.estado === "Equipo Recibido" && (
+            mostrarFormDiagnostico ? (
+              <FormDiagnostico idOrden={orden.id_orden} onListo={() => { onActualizado(orden.numero_orden); setMostrarFormDiagnostico(false); }} />
+            ) : (
+              <button
+                onClick={() => setMostrarFormDiagnostico(true)}
+                className="btn-primary w-full text-sm py-2.5"
+              >
+                Avanzar a Diagnosticado
+              </button>
+            )
+          )}
 
-      {orden.estado === "En Reparacion" && (
-        <FormReparado idOrden={orden.id_orden} perifericos={perifericos} onListo={() => onActualizado(orden.numero_orden)} />
-      )}
+          {orden.estado === "En Espera de Aprobacion" && (
+            <FormPago
+              idOrden={orden.id_orden}
+              totalOrden={totalOrden}
+              saldo={saldo}
+              modo="aprobar"
+              onListo={() => onActualizado(orden.numero_orden)}
+            />
+          )}
 
-      {orden.estado === "Reparado" && (
-        <BotonSimple etiqueta="Avanzar a Listo para Entrega" idOrden={orden.id_orden} siguienteEstado="Listo para Entrega" onListo={() => onActualizado(orden.numero_orden)} />
-      )}
+          {orden.estado === "Aprobado" && (
+            <BotonSimple etiqueta="Avanzar a En Reparación" idOrden={orden.id_orden} siguienteEstado="En Reparacion" onListo={() => onActualizado(orden.numero_orden)} />
+          )}
 
-      {orden.estado === "Listo para Entrega" && (
-        <BotonEntrega idOrden={orden.id_orden} esReingreso={orden.es_reingreso} saldo={saldo} onListo={() => onActualizado(orden.numero_orden)} />
-      )}
+          {orden.estado === "En Reparacion" && (
+            <FormReparado idOrden={orden.id_orden} perifericos={perifericos} onListo={() => onActualizado(orden.numero_orden)} />
+          )}
+
+          {orden.estado === "Reparado" && (
+            <BotonSimple etiqueta="Avanzar a Listo para Entrega" idOrden={orden.id_orden} siguienteEstado="Listo para Entrega" onListo={() => onActualizado(orden.numero_orden)} />
+          )}
+
+          {orden.estado === "Listo para Entrega" && (
+            <BotonEntrega idOrden={orden.id_orden} esReingreso={orden.es_reingreso} saldo={saldo} onListo={() => onActualizado(orden.numero_orden)} />
+          )}
+        </div>
+      </div>
 
       {(diagnostico || pagos.length > 0) && (
         <div className="border-t border-white/5 pt-3 space-y-1 text-sm">
@@ -369,10 +516,14 @@ function FormReparado({ idOrden, perifericos, onListo }) {
 function BotonEntrega({ idOrden, esReingreso, saldo, onListo }) {
   const [error, setError] = useState(null);
   const [montoCompletar, setMontoCompletar] = useState("");
+  const setPdfViewerUrl = useNavStore((s) => s.setPdfViewerUrl);
 
   const intentarEntregar = async () => {
     const res = await window.electron360API.ordenes.entregar(idOrden);
     if (!res.ok) { setError(res.error); return; }
+    if (res.rutaFactura?.dataUrl) {
+      setPdfViewerUrl(res.rutaFactura.dataUrl);
+    }
     onListo();
   };
 
