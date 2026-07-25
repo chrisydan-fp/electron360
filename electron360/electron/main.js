@@ -49,22 +49,30 @@ app.whenReady().then(() => {
 
   // Handle local-file:// scheme
   protocol.handle("local-file", (request) => {
-    const urlPath = decodeURIComponent(request.url.replace(/^\s*local-file:\/+/i, ""));
-    // On Windows, local-file:///C:/path vs Linux local-file:///app/path
-    let filePath = urlPath;
-    if (process.platform === "win32" && !/^[a-zA-Z]:/.test(filePath)) {
-      // may need to retain or adjust drive prefix
-    } else if (process.platform !== "win32" && !filePath.startsWith("/")) {
-      filePath = "/" + filePath;
+    const { net } = require("electron");
+    let urlPath = decodeURIComponent(request.url.replace(/^\s*local-file:\/+/i, ""));
+
+    // Standardize path separators
+    if (process.platform === "win32") {
+      urlPath = urlPath.replace(/\//g, "\\");
+      // Remove leading slash if it exists before the drive letter (e.g. \C:\path -> C:\path)
+      if (/^\\[a-zA-Z]:/.test(urlPath)) {
+        urlPath = urlPath.substring(1);
+      }
+    } else {
+      urlPath = urlPath.replace(/\\/g, "/");
+      if (!urlPath.startsWith("/")) {
+        urlPath = "/" + urlPath;
+      }
     }
 
-    // Serve file cleanly
     try {
-      if (fs.existsSync(filePath)) {
-        return Response.redirect("file://" + filePath);
+      if (fs.existsSync(urlPath)) {
+        const fileUrl = require("url").pathToFileURL(urlPath).href;
+        return net.fetch(fileUrl);
       }
     } catch (e) {
-      console.error("Error checking protocol path:", e);
+      console.error("Error serving custom protocol path:", e);
     }
     return new Response("Not Found", { status: 404 });
   });
