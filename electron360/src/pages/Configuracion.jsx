@@ -72,8 +72,11 @@ export default function Configuracion() {
   const restore = async () => {
     const res = await window.electron360API.configuracion.restoreDB();
     if (res.ok) {
-      alert(`Base de datos restaurada con éxito desde: ${res.ruta}. La aplicación se reiniciará.`);
+      alert(`Base de datos restaurada con éxito desde: ${res.ruta || "archivo"}. La aplicación se reiniciará.`);
+      // If native relaunch did not exit, reload anyway as a fallback
       window.location.reload();
+    } else if (res.error) {
+      alert(`Error al restaurar: ${res.error}`);
     }
   };
 
@@ -110,7 +113,7 @@ export default function Configuracion() {
         <p className="text-white font-semibold">Datos del Taller</p>
 
         <div className="flex items-center gap-3">
-          {config.taller_logo && <img src={`file://${config.taller_logo}`} alt="logo" className="w-12 h-12 rounded-lg object-cover border border-white/10" />}
+          {config.taller_logo && <img src={config.taller_logo.startsWith("local-file:") || config.taller_logo.startsWith("data:") ? config.taller_logo : `local-file://${config.taller_logo}`} alt="logo" className="w-12 h-12 rounded-lg object-cover border border-white/10" />}
           <button onClick={subirLogo} className="btn-secondary flex items-center gap-2 text-sm"><ImagePlus size={14} /> Subir Logotipo</button>
         </div>
 

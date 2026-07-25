@@ -12,3 +12,10 @@
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 To eliminate this warning, add "type": "module" to /app/electron360/package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
+5:02:32 AM [vite] page reload index.html
+5:02:36 AM [vite] hmr update /src/pages/Configuracion.jsx, /src/index.css
+5:02:41 AM [vite] hmr update /src/pages/Ordenes.jsx, /src/index.css
+5:02:46 AM [vite] hmr update /src/pages/NuevaOrden.jsx, /src/index.css
+5:08:11 AM [vite] hmr update /src/pages/Ordenes.jsx, /src/index.css
+5:10:43 AM [vite] hmr update /src/pages/Ordenes.jsx, /src/index.css
+5:17:26 AM [vite] hmr update /src/pages/Configuracion.jsx, /src/index.css

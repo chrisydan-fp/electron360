@@ -6,6 +6,7 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { ESTADOS_PERIFERICO } from "../lib/constantes";
 import { useNavStore } from "../store/useNavStore";
 import PatternMatrix from "../components/ui/PatternMatrix";
+import ImageViewer from "../components/ui/ImageViewer";
 
 export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
@@ -16,6 +17,7 @@ export default function Ordenes() {
   const [tarjetaBuscada, setTarjetaBuscada] = useState(null);
   const [detalle, setDetalle] = useState(null);
   const [aEliminar, setAEliminar] = useState(null);
+  const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const ordenDestacada = useNavStore((s) => s.ordenDestacada);
   const setOrdenDestacada = useNavStore((s) => s.setOrdenDestacada);
 
@@ -125,8 +127,17 @@ export default function Ordenes() {
       </div>
 
       <Modal open={!!detalle} onClose={cerrarDetalle} title={detalle ? `Orden ${detalle.orden.numero_orden}` : ""} width="max-w-xl">
-        {detalle && <DetalleOrden detalle={detalle} onActualizado={abrirDetalle} onClose={cerrarDetalle} />}
+        {detalle && (
+          <DetalleOrden
+            detalle={detalle}
+            onActualizado={abrirDetalle}
+            onClose={cerrarDetalle}
+            onAmpliarImagen={(src) => setImagenAmpliada(src)}
+          />
+        )}
       </Modal>
+
+      <ImageViewer src={imagenAmpliada} onClose={() => setImagenAmpliada(null)} />
 
       <ConfirmDialog
         open={!!aEliminar}
@@ -140,7 +151,7 @@ export default function Ordenes() {
   );
 }
 
-function ClonNuevaOrdenDetalle({ detalle }) {
+function ClonNuevaOrdenDetalle({ detalle, onAmpliarImagen }) {
   const { orden, cliente, equipo, perifericos } = detalle;
 
   const listaAccesorios = [];
@@ -260,14 +271,23 @@ function ClonNuevaOrdenDetalle({ detalle }) {
         </div>
       )}
 
-      {/* Imágenes en miniatura con protocolo file:// */}
+      {/* Imágenes en miniatura con protocolo local-file:// */}
       {equipo.imagenes && equipo.imagenes.length > 0 && (
         <div className="border-t border-white/5 pt-2">
           <p className="text-white font-medium text-xs mb-1">Imágenes Adjuntas</p>
           <div className="grid grid-cols-4 gap-1.5">
-            {equipo.imagenes.map((src, i) => (
-              <img key={i} src={src.startsWith("file://") ? src : `file://${src}`} alt="" className="w-full h-12 object-cover rounded border border-white/5" />
-            ))}
+            {equipo.imagenes.map((src, i) => {
+              const url = src.startsWith("local-file:") || src.startsWith("data:") ? src : `local-file://${src}`;
+              return (
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  onClick={() => onAmpliarImagen && onAmpliarImagen(url)}
+                  className="w-full h-12 object-cover rounded border border-white/5 cursor-pointer hover:border-electric-500/50"
+                />
+              );
+            })}
           </div>
         </div>
       )}
@@ -275,7 +295,7 @@ function ClonNuevaOrdenDetalle({ detalle }) {
   );
 }
 
-function DetalleOrden({ detalle, onActualizado, onClose }) {
+function DetalleOrden({ detalle, onActualizado, onClose, onAmpliarImagen }) {
   const { orden, cliente, equipo, perifericos, diagnostico, pagos } = detalle;
   const totalOrden = (diagnostico?.costo_repuesto || 0) + (diagnostico?.costo_mano_obra || 0) + (diagnostico?.cargo_diagnostico || 0);
   const totalPagado = pagos.reduce((acc, p) => acc + p.monto, 0);
@@ -309,7 +329,7 @@ function DetalleOrden({ detalle, onActualizado, onClose }) {
       </div>
 
       {/* Clon de Nueva Orden con todos los detalles registrados */}
-      <ClonNuevaOrdenDetalle detalle={detalle} />
+      <ClonNuevaOrdenDetalle detalle={detalle} onAmpliarImagen={onAmpliarImagen} />
 
       {/* Botones de Función: Avanzar al Siguiente Estado */}
       <div className="pt-2 border-t border-white/5">

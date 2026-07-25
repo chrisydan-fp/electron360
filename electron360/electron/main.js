@@ -1,6 +1,20 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol } = require("electron");
 const path = require("path");
 const fs = require("fs");
+
+// Register custom protocol 'local-file' before app is ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "local-file",
+    privileges: {
+      secure: true,
+      standard: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+    },
+  },
+]);
 
 const isDev = !app.isPackaged;
 let mainWindow;
@@ -32,6 +46,29 @@ function createWindow() {
 
 app.whenReady().then(() => {
   db = require("./db");
+
+  // Handle local-file:// scheme
+  protocol.handle("local-file", (request) => {
+    const urlPath = decodeURIComponent(request.url.replace(/^\s*local-file:\/+/i, ""));
+    // On Windows, local-file:///C:/path vs Linux local-file:///app/path
+    let filePath = urlPath;
+    if (process.platform === "win32" && !/^[a-zA-Z]:/.test(filePath)) {
+      // may need to retain or adjust drive prefix
+    } else if (process.platform !== "win32" && !filePath.startsWith("/")) {
+      filePath = "/" + filePath;
+    }
+
+    // Serve file cleanly
+    try {
+      if (fs.existsSync(filePath)) {
+        return Response.redirect("file://" + filePath);
+      }
+    } catch (e) {
+      console.error("Error checking protocol path:", e);
+    }
+    return new Response("Not Found", { status: 404 });
+  });
+
   registerIpcHandlers();
   createWindow();
 
@@ -512,9 +549,22 @@ function registerIpcHandlers() {
       defaultPath: `electron360_backup_${Date.now()}.db`,
     });
     if (res.canceled || !res.filePath) return { ok: false };
-    const origen = path.join(app.getPath("userData"), "electron360.db");
-    fs.copyFileSync(origen, res.filePath);
-    return { ok: true, ruta: res.filePath };
+
+    try {
+      // Use better-sqlite3's native .backup() to ensure WAL checkpoint and complete backup
+      await db.backup(res.filePath);
+      return { ok: true, ruta: res.filePath };
+    } catch (e) {
+      console.error("Backup failed, falling back to copy", e);
+      try {
+        const origen = path.join(app.getPath("userData"), "electron360.db");
+        fs.copyFileSync(origen, res.filePath);
+        return { ok: true, ruta: res.filePath };
+      } catch (err) {
+        console.error("Fallback copy failed", err);
+        return { ok: false, error: err.message };
+      }
+    }
   });
 
   ipcMain.handle("configuracion:restoreDB", async () => {
@@ -524,15 +574,38 @@ function registerIpcHandlers() {
     });
     if (res.canceled || !res.filePaths[0]) return { ok: false };
 
-    db.close();
+    try {
+      // Close database connection
+      db.close();
 
-    const destino = path.join(app.getPath("userData"), "electron360.db");
-    fs.copyFileSync(res.filePaths[0], destino);
+      const destino = path.join(app.getPath("userData"), "electron360.db");
+      const destinoWal = destino + "-wal";
+      const destinoShm = destino + "-shm";
 
-    delete require.cache[require.resolve("./db")];
-    db = require("./db");
+      // Clean up existing WAL and SHM files to prevent state conflicts
+      if (fs.existsSync(destinoWal)) {
+        try { fs.unlinkSync(destinoWal); } catch (e) { console.error("Error deleting WAL", e); }
+      }
+      if (fs.existsSync(destinoShm)) {
+        try { fs.unlinkSync(destinoShm); } catch (e) { console.error("Error deleting SHM", e); }
+      }
 
-    return { ok: true, ruta: res.filePaths[0] };
+      // Copy backup file
+      fs.copyFileSync(res.filePaths[0], destino);
+
+      // Relaunch the application cleanly to initialize on the restored DB
+      app.relaunch();
+      app.exit(0);
+      return { ok: true, relaunching: true, ruta: res.filePaths[0] };
+    } catch (e) {
+      console.error("Restore failed", e);
+      // Re-open if possible
+      try {
+        delete require.cache[require.resolve("./db")];
+        db = require("./db");
+      } catch (err) {}
+      return { ok: false, error: e.message };
+    }
   });
 
   ipcMain.handle("configuracion:resetearDB", () => {

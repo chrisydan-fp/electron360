@@ -457,18 +457,21 @@ export default function NuevaOrden() {
             <input type="file" multiple accept="image/*" onChange={manejarImagenes} className="text-sm text-slate-400" />
             {imagenes.length > 0 && (
               <div className="grid grid-cols-4 gap-2 pt-2">
-                {imagenes.map((src, i) => (
-                  <div key={i} className="relative group w-full h-20">
-                    <img src={src} alt="" onClick={() => setImagenAmpliada(src)} className="w-full h-full object-cover rounded-lg border border-white/10 cursor-pointer hover:border-electric-500/50" />
-                    <button
-                      onClick={(e) => eliminarImagen(i, e)}
-                      className="absolute top-1 right-1 bg-neon-red/80 hover:bg-neon-red text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center shadow-neon-red"
-                      title="Eliminar imagen"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
+                {imagenes.map((src, i) => {
+                  const url = src.startsWith("local-file:") || src.startsWith("data:") ? src : `local-file://${src}`;
+                  return (
+                    <div key={i} className="relative group w-full h-20">
+                      <img src={url} alt="" onClick={() => setImagenAmpliada(url)} className="w-full h-full object-cover rounded-lg border border-white/10 cursor-pointer hover:border-electric-500/50" />
+                      <button
+                        onClick={(e) => eliminarImagen(i, e)}
+                        className="absolute top-1 right-1 bg-neon-red/80 hover:bg-neon-red text-white rounded-full p-1 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center shadow-neon-red"
+                        title="Eliminar imagen"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
