@@ -19,3 +19,4 @@ To eliminate this warning, add "type": "module" to /app/electron360/package.json
 5:08:11 AM [vite] hmr update /src/pages/Ordenes.jsx, /src/index.css
 5:10:43 AM [vite] hmr update /src/pages/Ordenes.jsx, /src/index.css
 5:17:26 AM [vite] hmr update /src/pages/Configuracion.jsx, /src/index.css
+9:25:44 PM [vite] hmr update /src/pages/Configuracion.jsx, /src/index.css

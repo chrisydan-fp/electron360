@@ -218,6 +218,10 @@ function registerIpcHandlers() {
           const partes = linea.split(";");
           marca = partes[0].trim();
           modelo = partes.slice(1).join(";").trim();
+        } else if (linea.includes("|")) {
+          const partes = linea.split("|");
+          marca = partes[0].trim();
+          modelo = partes.slice(1).join("|").trim();
         } else {
           marca = linea;
         }

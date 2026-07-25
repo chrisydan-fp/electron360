@@ -182,12 +182,12 @@ export default function Configuracion() {
           <div className="p-3 bg-base-900/60 rounded-xl border border-white/5 space-y-1">
             <p className="text-xs font-semibold text-neon-blue">Instrucciones de Formato:</p>
             <p className="text-xs text-slate-400">
-              Ingresa una línea por registro usando el formato: <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca, Modelo</code> o simplemente <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca</code>.
+              Ingresa una línea por registro usando el formato: <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca, Modelo</code>, <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca | Modelo</code> o simplemente <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca</code>.
             </p>
             <p className="text-xs text-slate-500 italic">
               Ejemplo:<br />
               Samsung, Galaxy S24<br />
-              Apple, iPhone 15<br />
+              Apple | iPhone 15<br />
               Xiaomi
             </p>
           </div>
