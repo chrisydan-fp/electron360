@@ -34,7 +34,7 @@ export default function NuevaOrden() {
 
   const [cliente, setCliente] = useState(clienteParaOrden);
   const [idOrdenEdicion, setIdOrdenEdicion] = useState(null);
-  const [modalAsignar, setModalAsignar] = useState(!clienteParaOrden);
+  const [modalAsignar, setModalAsignar] = useState(!clienteParaOrden && !ordenParaEditar);
   const [idBusquedaCliente, setIdBusquedaCliente] = useState("");
   const [clienteEncontrado, setClienteEncontrado] = useState(null);
   const [clienteNoEncontrado, setClienteNoEncontrado] = useState(false);

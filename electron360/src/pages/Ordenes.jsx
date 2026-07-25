@@ -5,6 +5,7 @@ import Modal from "../components/ui/Modal";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { ESTADOS_PERIFERICO } from "../lib/constantes";
 import { useNavStore } from "../store/useNavStore";
+import PatternMatrix from "../components/ui/PatternMatrix";
 
 export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
@@ -249,13 +250,23 @@ function ClonNuevaOrdenDetalle({ detalle }) {
         </div>
       )}
 
-      {/* Imágenes en miniatura */}
+      {/* Patrón de desbloqueo dibujado */}
+      {equipo.patron_desbloqueo && (
+        <div className="border-t border-white/5 pt-2 flex flex-col items-center">
+          <p className="text-white font-semibold text-xs mb-1.5 self-start">Patrón de Desbloqueo Registrado</p>
+          <div className="scale-90 origin-top">
+            <PatternMatrix value={equipo.patron_desbloqueo.split("-").map(Number)} disabled={true} />
+          </div>
+        </div>
+      )}
+
+      {/* Imágenes en miniatura con protocolo file:// */}
       {equipo.imagenes && equipo.imagenes.length > 0 && (
         <div className="border-t border-white/5 pt-2">
           <p className="text-white font-medium text-xs mb-1">Imágenes Adjuntas</p>
           <div className="grid grid-cols-4 gap-1.5">
             {equipo.imagenes.map((src, i) => (
-              <img key={i} src={src} alt="" className="w-full h-12 object-cover rounded border border-white/5" />
+              <img key={i} src={src.startsWith("file://") ? src : `file://${src}`} alt="" className="w-full h-12 object-cover rounded border border-white/5" />
             ))}
           </div>
         </div>
@@ -282,26 +293,27 @@ function DetalleOrden({ detalle, onActualizado, onClose }) {
           <p className="text-white font-medium">{cliente.nombres}</p>
           <p className="text-slate-500 text-xs">{equipo.tipo_equipo} {equipo.marca} {equipo.modelo} · {cliente.telefono}</p>
         </div>
-        <StatusBadge estado={orden.estado} />
+        <div className="flex flex-col items-end gap-1.5">
+          <StatusBadge estado={orden.estado} />
+          <button
+            onClick={() => {
+              setOrdenParaEditar(detalle);
+              setView("nueva-orden");
+              onClose();
+            }}
+            className="btn-secondary flex items-center gap-1.5 text-xs py-1.5 px-3"
+          >
+            <Pencil size={13} /> Editar Orden
+          </button>
+        </div>
       </div>
 
       {/* Clon de Nueva Orden con todos los detalles registrados */}
       <ClonNuevaOrdenDetalle detalle={detalle} />
 
-      {/* Botones de Función: Editar Orden & Avanzar al Siguiente Estado */}
-      <div className="flex gap-3 pt-2 border-t border-white/5">
-        <button
-          onClick={() => {
-            setOrdenParaEditar(detalle);
-            setView("nueva-orden");
-            onClose();
-          }}
-          className="btn-secondary flex-1 flex items-center justify-center gap-2 text-sm py-2.5"
-        >
-          <Pencil size={15} /> Editar Orden
-        </button>
-
-        <div className="flex-1">
+      {/* Botones de Función: Avanzar al Siguiente Estado */}
+      <div className="pt-2 border-t border-white/5">
+        <div className="w-full">
           {orden.estado === "Equipo Recibido" && (
             mostrarFormDiagnostico ? (
               <FormDiagnostico idOrden={orden.id_orden} onListo={() => { onActualizado(orden.numero_orden); setMostrarFormDiagnostico(false); }} />

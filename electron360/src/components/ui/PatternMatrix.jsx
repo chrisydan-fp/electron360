@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { RotateCcw } from "lucide-react";
 
 // Genera las coordenadas de los 9 puntos en una grilla 3x3
@@ -12,6 +12,10 @@ export default function PatternMatrix({ value = [], onChange, disabled = false }
   const [secuencia, setSecuencia] = useState(value);
   const [arrastrando, setArrastrando] = useState(false);
   const svgRef = useRef(null);
+
+  useEffect(() => {
+    setSecuencia(value || []);
+  }, [value]);
 
   const emitir = (nueva) => {
     setSecuencia(nueva);

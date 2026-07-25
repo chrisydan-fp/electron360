@@ -234,8 +234,8 @@ function registerIpcHandlers() {
           patron_desbloqueo = @patron_desbloqueo,
           pin_desbloqueo = @pin_desbloqueo,
           detalle_extra = @detalle_extra
-        WHERE id_equipo = ?
-      `).run({ ...equipo }, idEquipo);
+        WHERE id_equipo = @id_equipo
+      `).run({ ...equipo, id_equipo: idEquipo });
 
       db.prepare("DELETE FROM perifericos_estado WHERE id_equipo = ?").run(idEquipo);
       const insertPeriferico = db.prepare(
@@ -368,7 +368,7 @@ function registerIpcHandlers() {
     const { totalOrden, totalPagado, saldo } = saldoPendiente(idOrden);
 
     if (!orden.es_reingreso && saldo > 0.009) {
-      return { ok: false, error: "El cliente aún no completa el pago. Registra el saldo pendiente para continuar.", saldo };
+      return { ok: false, error: `El cliente aún debe $${saldo.toFixed(2)}. Registra el saldo pendiente para continuar.`, saldo };
     }
 
     const diagnostico = db

@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CatalogSelect({ label, opciones, value, onChange, placeholder = "Seleccionar..." }) {
   const [modoManual, setModoManual] = useState(false);
+
+  useEffect(() => {
+    setModoManual(false);
+  }, [opciones]);
 
   const manejarCambio = (e) => {
     const val = e.target.value;
