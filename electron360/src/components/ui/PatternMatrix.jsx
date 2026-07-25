@@ -9,12 +9,12 @@ const PUNTOS = Array.from({ length: 9 }, (_, i) => ({
 }));
 
 export default function PatternMatrix({ value = [], onChange, disabled = false }) {
-  const [secuencia, setSecuencia] = useState(value);
+  const [secuencia, setSecuencia] = useState([]);
   const [arrastrando, setArrastrando] = useState(false);
   const svgRef = useRef(null);
 
   useEffect(() => {
-    setSecuencia(value || []);
+    setSecuencia((value || []).map(Number));
   }, [value]);
 
   const emitir = (nueva) => {
@@ -23,8 +23,9 @@ export default function PatternMatrix({ value = [], onChange, disabled = false }
   };
 
   const agregarPunto = (id) => {
-    if (disabled || secuencia.includes(id)) return;
-    emitir([...secuencia, id]);
+    const numericId = Number(id);
+    if (disabled || secuencia.includes(numericId)) return;
+    emitir([...secuencia, numericId]);
   };
 
   const reiniciar = () => {
@@ -32,7 +33,7 @@ export default function PatternMatrix({ value = [], onChange, disabled = false }
     emitir([]);
   };
 
-  const puntoPorId = (id) => PUNTOS.find((p) => p.id === id);
+  const puntoPorId = (id) => PUNTOS.find((p) => Number(p.id) === Number(id));
 
   return (
     <div className={`panel p-4 flex flex-col items-center gap-3 ${disabled ? "opacity-40 pointer-events-none" : ""}`}>

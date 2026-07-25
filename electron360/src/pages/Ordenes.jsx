@@ -527,7 +527,6 @@ function FormReparado({ idOrden, perifericos, onListo }) {
 
 function BotonEntrega({ idOrden, esReingreso, saldo, onListo }) {
   const [error, setError] = useState(null);
-  const [montoCompletar, setMontoCompletar] = useState("");
   const setPdfViewerUrl = useNavStore((s) => s.setPdfViewerUrl);
 
   const intentarEntregar = async () => {
@@ -540,8 +539,7 @@ function BotonEntrega({ idOrden, esReingreso, saldo, onListo }) {
   };
 
   const completarYEntregar = async () => {
-    const valor = parseFloat(montoCompletar) || saldo;
-    await window.electron360API.pagos.registrar({ idOrden, monto: valor, tipo: "Pago Total" });
+    await window.electron360API.pagos.registrar({ idOrden, monto: saldo, tipo: "Pago Total" });
     setError(null);
     await intentarEntregar();
   };
@@ -557,10 +555,9 @@ function BotonEntrega({ idOrden, esReingreso, saldo, onListo }) {
       {error && (
         <div className="panel p-3 border-neon-red/30 space-y-2">
           <p className="text-xs text-neon-red">{error}</p>
-          <div className="flex gap-2">
-            <input className="input-field" placeholder={`Completar saldo ($${saldo.toFixed(2)})`} value={montoCompletar} onChange={(e) => setMontoCompletar(e.target.value)} />
-            <button onClick={completarYEntregar} className="btn-secondary shrink-0 text-sm">Registrar y Entregar</button>
-          </div>
+          <button onClick={completarYEntregar} className="btn-secondary w-full text-sm py-2">
+            Registrar Saldo Restante y Entregar (${saldo.toFixed(2)})
+          </button>
         </div>
       )}
     </div>

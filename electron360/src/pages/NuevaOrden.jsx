@@ -98,7 +98,7 @@ export default function NuevaOrden() {
 
       if (eq.patron_desbloqueo) {
         setMetodoDesbloqueo("patron");
-        setPatron(eq.patron_desbloqueo.split("-"));
+        setPatron(eq.patron_desbloqueo.split("-").map(Number));
       } else if (eq.pin_desbloqueo) {
         setMetodoDesbloqueo("pin");
         setPin(eq.pin_desbloqueo);

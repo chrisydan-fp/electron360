@@ -11,6 +11,27 @@ export default function Configuracion() {
   const [confirmarReset, setConfirmarReset] = useState(false);
   const [redesTaller, setRedesTaller] = useState([]);
 
+  const [importarTipo, setImportarTipo] = useState("Telefono");
+  const [importarTexto, setImportarTexto] = useState("");
+  const [importando, setImportando] = useState(false);
+  const [resultadoImportacion, setResultadoImportacion] = useState(null);
+
+  const ejecutarImportacion = async () => {
+    setImportando(true);
+    setResultadoImportacion(null);
+    const lineas = importarTexto.split("\n");
+    try {
+      const res = await window.electron360API.catalogos.importar({ tipoEquipo: importarTipo, lineas });
+      setResultadoImportacion(res.importadas);
+      setImportarTexto("");
+    } catch (e) {
+      console.error(e);
+      alert("Error al importar el catálogo.");
+    } finally {
+      setImportando(false);
+    }
+  };
+
   useEffect(() => {
     window.electron360API.configuracion.obtener().then((c) => {
       setConfig(c);
@@ -46,6 +67,14 @@ export default function Configuracion() {
   const backup = async () => {
     const res = await window.electron360API.configuracion.backupDB();
     if (res.ok) alert(`Respaldo guardado en: ${res.ruta}`);
+  };
+
+  const restore = async () => {
+    const res = await window.electron360API.configuracion.restoreDB();
+    if (res.ok) {
+      alert(`Base de datos restaurada con éxito desde: ${res.ruta}. La aplicación se reiniciará.`);
+      window.location.reload();
+    }
   };
 
   const resetear = async () => {
@@ -125,10 +154,75 @@ export default function Configuracion() {
         {guardado && <p className="text-xs text-neon-green">Configuración guardada.</p>}
       </div>
 
+      {/* Importador de Catálogos */}
+      <div className="panel p-5 space-y-4">
+        <p className="text-white font-semibold">Cargar Catálogo de Marcas y Modelos</p>
+        <p className="text-sm text-slate-400">
+          Carga en lote marcas y modelos de equipos a la base de datos de forma fácil y rápida.
+        </p>
+
+        <div className="space-y-3">
+          <div>
+            <label className="label-field">Tipo de Equipo</label>
+            <select
+              className="input-field"
+              value={importarTipo}
+              onChange={(e) => setImportarTipo(e.target.value)}
+            >
+              <option value="Telefono">Teléfono</option>
+              <option value="Tablet">Tablet</option>
+              <option value="Laptop">Laptop</option>
+              <option value="PC Escritorio">PC Escritorio</option>
+            </select>
+          </div>
+
+          <div className="p-3 bg-base-900/60 rounded-xl border border-white/5 space-y-1">
+            <p className="text-xs font-semibold text-neon-blue">Instrucciones de Formato:</p>
+            <p className="text-xs text-slate-400">
+              Ingresa una línea por registro usando el formato: <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca, Modelo</code> o simplemente <code className="text-white bg-base-950 px-1 py-0.5 rounded font-mono">Marca</code>.
+            </p>
+            <p className="text-xs text-slate-500 italic">
+              Ejemplo:<br />
+              Samsung, Galaxy S24<br />
+              Apple, iPhone 15<br />
+              Xiaomi
+            </p>
+          </div>
+
+          <div>
+            <label className="label-field">Datos a Cargar</label>
+            <textarea
+              className="input-field font-mono text-xs resize-none"
+              rows={6}
+              placeholder="Marca, Modelo&#10;Marca2, Modelo2&#10;..."
+              value={importarTexto}
+              onChange={(e) => setImportarTexto(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={ejecutarImportacion}
+            disabled={importando || !importarTexto.trim()}
+            className="btn-primary w-full text-sm"
+          >
+            {importando ? "Importando..." : "Cargar Catálogo"}
+          </button>
+
+          {resultadoImportacion !== null && (
+            <p className="text-xs text-neon-green">
+              ¡Éxito! Se han importado {resultadoImportacion} registros correctamente.
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Base de datos */}
       <div className="panel p-5 space-y-3">
         <p className="text-white font-semibold">Base de Datos</p>
-        <button onClick={backup} className="btn-secondary flex items-center gap-2 text-sm"><DatabaseBackup size={15} /> Respaldar Base de Datos</button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={backup} className="btn-secondary flex items-center gap-2 text-sm"><DatabaseBackup size={15} /> Respaldar Base de Datos</button>
+          <button onClick={restore} className="btn-secondary flex items-center gap-2 text-sm"><DatabaseBackup size={15} /> Restaurar Base de Datos</button>
+        </div>
 
         <div className="pt-2 border-t border-white/5">
           <p className="text-sm text-slate-400 mb-2">Purga las órdenes <strong>Entregadas</strong> con más de 3 meses de antigüedad. No afecta las estadísticas de reportes.</p>

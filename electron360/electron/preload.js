@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld("electron360API", {
     agregarMarca: (payload) => ipcRenderer.invoke("catalogos:agregarMarca", payload),
     agregarModelo: (payload) => ipcRenderer.invoke("catalogos:agregarModelo", payload),
     agregarColor: (color) => ipcRenderer.invoke("catalogos:agregarColor", color),
+    importar: (payload) => ipcRenderer.invoke("catalogos:importar", payload),
   },
   ordenes: {
     crear: (payload) => ipcRenderer.invoke("ordenes:crear", payload),
@@ -45,6 +46,7 @@ contextBridge.exposeInMainWorld("electron360API", {
     guardar: (valores) => ipcRenderer.invoke("configuracion:guardar", valores),
     subirLogo: () => ipcRenderer.invoke("configuracion:subirLogo"),
     backupDB: () => ipcRenderer.invoke("configuracion:backupDB"),
+    restoreDB: () => ipcRenderer.invoke("configuracion:restoreDB"),
     resetearDB: () => ipcRenderer.invoke("configuracion:resetearDB"),
     purgarOrdenesVencidas: () => ipcRenderer.invoke("configuracion:purgarOrdenesVencidas"),
   },

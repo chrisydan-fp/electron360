@@ -152,6 +152,43 @@ function registerIpcHandlers() {
     if (color) db.prepare("INSERT OR IGNORE INTO catalogo_colores (color) VALUES (?)").run(color);
     return { ok: true };
   });
+  ipcMain.handle("catalogos:importar", (_e, { tipoEquipo, lineas }) => {
+    const transaccion = db.transaction(() => {
+      const stmtMarca = db.prepare("INSERT OR IGNORE INTO catalogo_marcas (tipo_equipo, marca) VALUES (?, ?)");
+      const stmtModelo = db.prepare("INSERT OR IGNORE INTO catalogo_modelos (tipo_equipo, marca, modelo) VALUES (?, ?, ?)");
+
+      let importadas = 0;
+      for (let linea of lineas) {
+        linea = linea.trim();
+        if (!linea) continue;
+
+        let marca = "";
+        let modelo = "";
+
+        if (linea.includes(",")) {
+          const partes = linea.split(",");
+          marca = partes[0].trim();
+          modelo = partes.slice(1).join(",").trim();
+        } else if (linea.includes(";")) {
+          const partes = linea.split(";");
+          marca = partes[0].trim();
+          modelo = partes.slice(1).join(";").trim();
+        } else {
+          marca = linea;
+        }
+
+        if (marca) {
+          stmtMarca.run(tipoEquipo, marca);
+          if (modelo) {
+            stmtModelo.run(tipoEquipo, marca, modelo);
+          }
+          importadas++;
+        }
+      }
+      return { ok: true, importadas };
+    });
+    return transaccion();
+  });
 
   // ---------- Nueva Orden ----------
   ipcMain.handle("ordenes:crear", async (_e, payload) => {
@@ -478,6 +515,24 @@ function registerIpcHandlers() {
     const origen = path.join(app.getPath("userData"), "electron360.db");
     fs.copyFileSync(origen, res.filePath);
     return { ok: true, ruta: res.filePath };
+  });
+
+  ipcMain.handle("configuracion:restoreDB", async () => {
+    const res = await dialog.showOpenDialog(mainWindow, {
+      filters: [{ name: "Bases de Datos", extensions: ["db"] }],
+      properties: ["openFile"],
+    });
+    if (res.canceled || !res.filePaths[0]) return { ok: false };
+
+    db.close();
+
+    const destino = path.join(app.getPath("userData"), "electron360.db");
+    fs.copyFileSync(res.filePaths[0], destino);
+
+    delete require.cache[require.resolve("./db")];
+    db = require("./db");
+
+    return { ok: true, ruta: res.filePaths[0] };
   });
 
   ipcMain.handle("configuracion:resetearDB", () => {
