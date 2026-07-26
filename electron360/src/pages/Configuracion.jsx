@@ -13,6 +13,7 @@ export default function Configuracion() {
 
   const [importarTipo, setImportarTipo] = useState("Telefono");
   const [importarTexto, setImportarTexto] = useState("");
+  const [limpiarPrimero, setLimpiarPrimero] = useState(false);
   const [importando, setImportando] = useState(false);
   const [resultadoImportacion, setResultadoImportacion] = useState(null);
 
@@ -21,7 +22,7 @@ export default function Configuracion() {
     setResultadoImportacion(null);
     const lineas = importarTexto.split("\n");
     try {
-      const res = await window.electron360API.catalogos.importar({ tipoEquipo: importarTipo, lineas });
+      const res = await window.electron360API.catalogos.importar({ tipoEquipo: importarTipo, lineas, limpiarPrimero });
       setResultadoImportacion(res.importadas);
       setImportarTexto("");
     } catch (e) {
@@ -201,6 +202,19 @@ export default function Configuracion() {
               value={importarTexto}
               onChange={(e) => setImportarTexto(e.target.value)}
             />
+          </div>
+
+          <div className="flex items-center gap-2 py-1">
+            <input
+              type="checkbox"
+              id="limpiarPrimero"
+              checked={limpiarPrimero}
+              onChange={(e) => setLimpiarPrimero(e.target.checked)}
+              className="accent-electric-500 rounded h-4 w-4 cursor-pointer"
+            />
+            <label htmlFor="limpiarPrimero" className="text-xs text-slate-300 cursor-pointer select-none">
+              Limpiar catálogo existente para este tipo de equipo antes de importar
+            </label>
           </div>
 
           <button

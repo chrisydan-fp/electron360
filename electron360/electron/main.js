@@ -197,8 +197,13 @@ function registerIpcHandlers() {
     if (color) db.prepare("INSERT OR IGNORE INTO catalogo_colores (color) VALUES (?)").run(color);
     return { ok: true };
   });
-  ipcMain.handle("catalogos:importar", (_e, { tipoEquipo, lineas }) => {
+  ipcMain.handle("catalogos:importar", (_e, { tipoEquipo, lineas, limpiarPrimero }) => {
     const transaccion = db.transaction(() => {
+      if (limpiarPrimero) {
+        db.prepare("DELETE FROM catalogo_marcas WHERE tipo_equipo = ?").run(tipoEquipo);
+        db.prepare("DELETE FROM catalogo_modelos WHERE tipo_equipo = ?").run(tipoEquipo);
+      }
+
       const stmtMarca = db.prepare("INSERT OR IGNORE INTO catalogo_marcas (tipo_equipo, marca) VALUES (?, ?)");
       const stmtModelo = db.prepare("INSERT OR IGNORE INTO catalogo_modelos (tipo_equipo, marca, modelo) VALUES (?, ?, ?)");
 
